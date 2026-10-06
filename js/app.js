@@ -1,110 +1,123 @@
-const studentNumberPattern = document.getElementById("studentNumberPattern");
-const emailPattern = document.getElementById("emailPattern");
-
-const registrationForm = document.getElementById("registrationForm");
-const studentName = document.getElementById("studentName");
-const studentNumber = document.getElementById("studentNumber");
-const email = document.getElementById("email");
-const workshop = document.getElementById("workshop");
-const terms = document.getElementById("terms");
-
-const nameError = document.getElementById("nameError");
-const studentNumberError = document.getElementById("studentNumberError");
-const emailError = document.getElementById("emailError");
-const workshopError = document.getElementById("workshopError");
-const termsError = document.getElementById("termsError");
-
-const registerBtn = document.getElementById("registerBtn");
-const clearBtn = document.getElementById("clearBtn");
-const registrationResult = document.getElementById("registrationResult");
-
-const summaryName = document.getElementById("summaryName");
-const summaryStudentNumber = document.getElementById("summaryStudentNumber");
-const summaryEmail = document.getElementById("summaryEmail");
-const summaryWorkshop = document.getElementById("summaryWorkshop");
-
-registrationResult.hidden = true;
-
+// Pure validation function independent of the DOM
 function validateStudentInfo(name, studentNumber, email) {
-if (typeof name !== "string" || typeof studentNumber !== "string" || typeof email !== "string") {
-return false;
+    const trimmedName = name ? name.trim() : "";
+    const hasMinLength = trimmedName.length >= 3;
+    const isNotSpacesOnly = trimmedName.length > 0;
+    const hasNoNumbers = !/\d/.test(trimmedName);
+
+    const studentNumberRegex = /^\d{2}-\d{4}-\d{3}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const isNameValid = hasMinLength && isNotSpacesOnly && hasNoNumbers;
+    const isStudentNumberValid = studentNumberRegex.test(studentNumber);
+    const isEmailValid = emailRegex.test(email);
+
+    return isNameValid && isStudentNumberValid && isEmailValid;
 }
 
-const validName = name.trim().length >= 3 && !/\d/.test(name.trim()) && !/^\s+$/.test(name);
-const validStudentNumber = /^\d{2}-\d{4}-\d{3}$/.test(studentNumber.trim());
-const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+// DOM Initialization and Event Handling
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("registrationForm");
+    const studentNameInput = document.getElementById("studentName");
+    const studentNumberInput = document.getElementById("studentNumber");
+    const emailInput = document.getElementById("email");
+    const workshopSelect = document.getElementById("workshop");
+    const termsCheckbox = document.getElementById("terms");
 
-return validName && validStudentNumber && validEmail;
-}
+    const nameError = document.getElementById("nameError");
+    const studentNumberError = document.getElementById("studentNumberError");
+    const emailError = document.getElementById("emailError");
+    const workshopError = document.getElementById("workshopError");
+    const termsError = document.getElementById("termsError");
 
-registrationForm.addEventListener("submit", function (event) {
-event.preventDefault();
+    const registerBtn = document.getElementById("registerBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const registrationResult = document.getElementById("registrationResult");
 
-nameError.textContent = "";
-studentNumberError.textContent = "";
-emailError.textContent = "";
-workshopError.textContent = "";
-termsError.textContent = "";
-registrationResult.hidden = true;
+    const summaryName = document.getElementById("summaryName");
+    const summaryStudentNumber = document.getElementById("summaryStudentNumber");
+    const summaryEmail = document.getElementById("summaryEmail");
+    const summaryWorkshop = document.getElementById("summaryWorkshop");
 
-const validInfo = validateStudentInfo(
-studentName.value,
-studentNumber.value,
-email.value
-);
+    // Initially hide registration result container
+    registrationResult.style.display = "none";
 
-const validName = typeof studentName.value === "string" &&
-studentName.value.trim().length >= 3 &&
-!/\d/.test(studentName.value.trim()) &&
-!/^\s+$/.test(studentName.value);
+    function clearErrors() {
+        nameError.textContent = "";
+        studentNumberError.textContent = "";
+        emailError.textContent = "";
+        workshopError.textContent = "";
+        termsError.textContent = "";
+    }
 
-const validStudentNumber = /^\d{2}-\d{4}-\d{3}$/.test(studentNumber.value.trim());
-const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
-const validWorkshop = workshop.value.trim() !== "";
-const validTerms = terms.checked;
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        clearErrors();
 
-if (!validName) {
-nameError.textContent = "Enter a valid student name.";
-}
+        const nameVal = studentNameInput.value;
+        const studentNumVal = studentNumberInput.value;
+        const emailVal = emailInput.value;
+        const workshopVal = workshopSelect.value;
+        const termsChecked = termsCheckbox.checked;
 
-if (!validStudentNumber) {
-studentNumberError.textContent = "Enter a valid student number.";
-}
+        let isValid = true;
 
-if (!validEmail) {
-emailError.textContent = "Enter a valid email address.";
-}
+        // Name validation checks
+        const trimmedName = nameVal.trim();
+        if (trimmedName.length < 3 || /\d/.test(trimmedName)) {
+            nameError.textContent = "Enter a valid student name.";
+            isValid = false;
+        }
 
-if (!validWorkshop) {
-workshopError.textContent = "Please select a workshop.";
-}
+        // Student Number validation check
+        const studentNumberRegex = /^\d{2}-\d{4}-\d{3}$/;
+        if (!studentNumberRegex.test(studentNumVal)) {
+            studentNumberError.textContent = "Enter a valid student number.";
+            isValid = false;
+        }
 
-if (!validTerms) {
-termsError.textContent = "You must accept the Terms and Conditions.";
-}
+        // Email validation check
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailVal)) {
+            emailError.textContent = "Enter a valid email address.";
+            isValid = false;
+        }
 
-if (validInfo && validWorkshop && validTerms) {
-summaryName.textContent = studentName.value.trim();
-summaryStudentNumber.textContent = studentNumber.value.trim();
-summaryEmail.textContent = email.value.trim();
-summaryWorkshop.textContent = workshop.options[workshop.selectedIndex].textContent;
-registrationResult.hidden = false;
-}
-});
+        // Workshop selection check
+        if (!workshopVal || workshopVal === "" || workshopVal === "Select Workshop") {
+            workshopError.textContent = "Please select a workshop.";
+            isValid = false;
+        }
 
-clearBtn.addEventListener("click", function () {
-registrationForm.reset();
+        // Terms check
+        if (!termsChecked) {
+            termsError.textContent = "You must accept the Terms and Conditions.";
+            isValid = false;
+        }
 
-nameError.textContent = "";
-studentNumberError.textContent = "";
-emailError.textContent = "";
-workshopError.textContent = "";
-termsError.textContent = "";
+        // Global pure function check integration & final display action
+        if (!isValid || !validateStudentInfo(nameVal, studentNumVal, emailVal)) {
+            registrationResult.style.display = "none";
+            return;
+        }
 
-summaryName.textContent = "";
-summaryStudentNumber.textContent = "";
-summaryEmail.textContent = "";
-summaryWorkshop.textContent = "";
+        // All valid: display summary using textContent safely
+        summaryName.textContent = nameVal.trim();
+        summaryStudentNumber.textContent = studentNumVal;
+        summaryEmail.textContent = emailVal;
+        summaryWorkshop.textContent = workshopVal;
 
-registrationResult.hidden = true;
+        registrationResult.style.display = "block";
+    });
+
+    // Clear / Complete Reset functionality
+    clearBtn.addEventListener("click", () => {
+        studentNameInput.value = "";
+        studentNumberInput.value = "";
+        emailInput.value = "";
+        workshopSelect.selectedIndex = 0;
+        termsCheckbox.checked = false;
+        clearErrors();
+        registrationResult.style.display = "none";
+    });
 });
