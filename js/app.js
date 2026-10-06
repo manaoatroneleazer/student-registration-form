@@ -1,3 +1,6 @@
+const studentNumberPattern = document.getElementById("studentNumberPattern");
+const emailPattern = document.getElementById("emailPattern");
+
 const registrationForm = document.getElementById("registrationForm");
 const studentName = document.getElementById("studentName");
 const studentNumber = document.getElementById("studentNumber");
